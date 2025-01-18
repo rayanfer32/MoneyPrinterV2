@@ -162,10 +162,13 @@ class YouTube:
         is_duplicate = self.generate_response(f"All Subjects: {all_subjects} \n\n New Subject: {self.subject} \n\n IF NEW SUBJECT OR SIMILAR SUBJECT ALREADY EXISTS IN ALL SUBJECTS THEN RETURN TRUE ELSE RETURN FALSE. DONT NOT RETURN ANYTHING ELSE.")
         print('is_duplicate:', is_duplicate)
         if is_duplicate == 'TRUE':
-            raise("Subject is already in the database.")
+            print("Subject is already in the database.")
+            # *Store the subject in the database
+            self.db.insert({'type': 'subject', 'value': self.subject})
+            # * retry to generate a new topic
+            print("Retrying to generate a new topic...")
+            return self.generate_topic()
         
-        # Store the subject in the database
-        self.db.insert({'type': 'subject', 'value': self.subject})
             
         return completion
 
