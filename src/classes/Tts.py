@@ -1,63 +1,12 @@
+from config import ROOT_DIR
+from gtts import gTTS
 import os
 
-from config import ROOT_DIR, get_config
-from TTS.utils.manage import ModelManager
-from TTS.utils.synthesizer import Synthesizer
-import site 
-
 class TTS:
-    """
-    Class for Text-to-Speech using Coqui TTS.
-    """
-    def __init__(self) -> None:
-        """
-        Initializes the TTS class.
-
-        Returns:
-            None
-        """
-        if(get_config()["use_venv"]):
-            site_packages = "venv\\Lib\\site-packages"
-        else:
-            site_packages = site.getsitepackages()[0]
-
-        # Path to the .models.json file
-        models_json_path = os.path.join(
-            ROOT_DIR,
-            site_packages,
-            "TTS",
-            ".models.json",
-        )
-
-        # Initialize the ModelManager
-        self._model_manager = ModelManager(models_json_path)
-
-        # Download tts_models/en/ljspeech/fast_pitch
-        self._model_path, self._config_path, self._model_item = \
-            self._model_manager.download_model("tts_models/en/ljspeech/tacotron2-DDC_ph")
-
-        # Download vocoder_models/en/ljspeech/hifigan_v2 as our vocoder
-        voc_path, voc_config_path, _ = self._model_manager. \
-            download_model("vocoder_models/en/ljspeech/univnet")
-        
-        # Initialize the Synthesizer
-        self._synthesizer = Synthesizer(
-            tts_checkpoint=self._model_path,
-            tts_config_path=self._config_path,
-            vocoder_checkpoint=voc_path,
-            vocoder_config=voc_config_path
-        )
-
-    @property
-    def synthesizer(self) -> Synthesizer:
-        """
-        Returns the synthesizer.
-
-        Returns:
-            Synthesizer: The synthesizer.
-        """
-        return self._synthesizer
-
+    def __init__(self):
+        # Initialize the TTS class  
+        self.gtts = gTTS
+    
     def synthesize(self, text: str, output_file: str = os.path.join(ROOT_DIR, ".mp", "audio.wav")) -> str:
         """
         Synthesizes the given text into speech.
@@ -70,10 +19,6 @@ class TTS:
             str: The path to the output file.
         """
         # Synthesize the text
-        outputs = self.synthesizer.tts(text)
-
-        # Save the synthesized speech to the output file
-        self.synthesizer.save_wav(outputs, output_file)
-
+        tts = self.gtts(text=text, lang='en', tld='com.ng')
+        tts.save(output_file)
         return output_file
-    
