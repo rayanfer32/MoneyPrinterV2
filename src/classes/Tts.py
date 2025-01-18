@@ -1,6 +1,6 @@
 import os
 
-from config import ROOT_DIR
+from config import ROOT_DIR, get_config
 from TTS.utils.manage import ModelManager
 from TTS.utils.synthesizer import Synthesizer
 
@@ -15,12 +15,15 @@ class TTS:
         Returns:
             None
         """
-        venv_site_packages = "venv\\Lib\\site-packages"
+        if(get_config()["use_venv"]):
+            site_packages = "venv\\Lib\\site-packages"
+        else:
+            site_packages = "/lib/python3/dist-packages"
 
         # Path to the .models.json file
         models_json_path = os.path.join(
             ROOT_DIR,
-            venv_site_packages,
+            site_packages,
             "TTS",
             ".models.json",
         )
