@@ -15,3 +15,4 @@ srt_equalizer
 undetected_chromedriver
 platformdirs
 coqui-tts
+tinydb
