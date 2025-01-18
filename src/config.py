@@ -240,3 +240,14 @@ def get_imagemagick_path() -> str:
     """
     with open(os.path.join(ROOT_DIR, "config.json"), "r") as file:
         return json.load(file)["imagemagick_path"]
+
+
+def get_config() -> dict:
+    """
+    Gets the config file.
+
+    Returns:
+        config (dict): The config file
+    """
+    with open(os.path.join(ROOT_DIR, "config.json"), "r") as file:
+        return json.load(file)

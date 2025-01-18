@@ -13,26 +13,21 @@ from status import *
 from uuid import uuid4
 from constants import *
 from typing import List
-from moviepy.editor import *
+from moviepy import *
 from termcolor import colored
-
-from moviepy.video.fx.all import crop
-from moviepy.config import change_settings
+from selenium_firefox import *
+from selenium import webdriver
+from moviepy.video.fx import Crop
+# from moviepy.config import 
+from selenium.webdriver.common.by import By
+from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.firefox.options import Options
 from moviepy.video.tools.subtitles import SubtitlesClip
+from webdriver_manager.firefox import GeckoDriverManager
 from datetime import datetime
-from tinydb import TinyDB, Query
-
-# ! dont use selenium 
-# from selenium.webdriver.common.by import By
-# from selenium.webdriver.firefox.service import Service
-# from selenium.webdriver.firefox.options import Options
-# from webdriver_manager.firefox import GeckoDriverManager
-# from selenium_firefox import *
-# from selenium import webdriver
-
 
 # Set ImageMagick Path
-change_settings({"IMAGEMAGICK_BINARY": get_imagemagick_path()})
+# change_settings({"IMAGEMAGICK_BINARY": get_imagemagick_path()})
 
 class YouTube:
     """
@@ -69,26 +64,23 @@ class YouTube:
         self._language: str = language
 
         self.images = []
-        
-        # load the stored subjects first
-        self.db = TinyDB('data.json')
 
         # Initialize the Firefox profile
-        # self.options: Options = Options()
+        self.options: Options = Options()
         
         # Set headless state of browser
-        # if get_headless():
-        #     self.options.add_argument("--headless")
+        if get_headless():
+            self.options.add_argument("--headless")
 
-        # # Set the profile path
-        # self.options.add_argument("-profile")
-        # self.options.add_argument(fp_profile_path)
+        # Set the profile path
+        self.options.add_argument("-profile")
+        self.options.add_argument(fp_profile_path)
 
         # Set the service
-        # self.service: Service = Service(GeckoDriverManager().install())
+        self.service: Service = Service(GeckoDriverManager().install())
 
         # Initialize the browser
-        # self.browser: webdriver.Firefox = webdriver.Firefox(service=self.service, options=self.options)
+        self.browser: webdriver.Firefox = webdriver.Firefox(service=self.service, options=self.options)
 
     @property
     def niche(self) -> str:
@@ -148,35 +140,14 @@ class YouTube:
         Returns:
             topic (str): The generated topic.
         """
-        all_subjects = self.get_all_subjects()
-        
-        completion = self.generate_response(f"Please generate a specific video idea that talks about the following topic: {self.niche}. Make it exactly one sentence. Only return the topic, nothing else. Also donot include the topic in the response that already exists in the list of all subjects: {all_subjects}")
+        completion = self.generate_response(f"Please generate a specific video idea that takes about the following topic: {self.niche}. Make it exactly one sentence. Only return the topic, nothing else.")
 
         if not completion:
             error("Failed to generate Topic.")
 
         self.subject = completion
-        print("Subject:", self.subject)
 
-        # Check if the subject is already in the database
-        is_duplicate = self.generate_response(f"All Subjects: {all_subjects} \n\n New Subject: {self.subject} \n\n IF NEW SUBJECT OR SIMILAR SUBJECT ALREADY EXISTS IN ALL SUBJECTS THEN RETURN TRUE ELSE RETURN FALSE. DONT NOT RETURN ANYTHING ELSE.")
-        print('is_duplicate:', is_duplicate)
-        if is_duplicate == 'TRUE':
-            raise("Subject is already in the database.")
-        
-        # Store the subject in the database
-        self.db.insert({'type': 'subject', 'value': self.subject})
-            
         return completion
-
-    def get_all_subjects(self) -> List[str]:
-        all_subjects = []
-        query = Query()
-        cached_subjects = self.db.search(query.type == 'subject')
-        for cached_subject in cached_subjects:
-            all_subjects.append(cached_subject.get('value'))
-
-        return all_subjects
 
     def generate_script(self) -> str:
         """
@@ -255,7 +226,7 @@ class YouTube:
         Returns:
             image_prompts (List[str]): Generated List of image prompts.
         """
-        n_prompts = 12
+        n_prompts = 12 # len(self.script) / 3
 
         prompt = f"""
         Generate {n_prompts} Image Prompts for AI Image Generation,
@@ -473,29 +444,34 @@ class YouTube:
             for image_path in self.images:
                 clip = ImageClip(image_path)
                 clip.duration = req_dur
-                clip = clip.set_fps(30)
+                clip = clip.with_fps(30)
 
                 # Not all images are same size,
                 # so we need to resize them
                 if round((clip.w/clip.h), 4) < 0.5625:
                     if get_verbose():
                         info(f" => Resizing Image: {image_path} to 1080x1920")
-                    clip = crop(clip, width=clip.w, height=round(clip.w/0.5625), \
+                    clip = Crop(clip, width=clip.w, height=round(clip.w/0.5625), \
                                 x_center=clip.w / 2, \
                                 y_center=clip.h / 2)
                 else:
                     if get_verbose():
                         info(f" => Resizing Image: {image_path} to 1920x1080")
-                    clip = crop(clip, width=round(0.5625*clip.h), height=clip.h, \
+                    clip = Crop(clip, width=round(0.5625*clip.h), height=clip.h, \
                                 x_center=clip.w / 2, \
                                 y_center=clip.h / 2)
-                clip = clip.resize((1080, 1920))
+                clip.width = 1920
+                clip.height = 1080
+                
 
                 # FX (Fade In)
                 #clip = clip.fadein(2)
-
+                
+                # convert clip object back to ImageClip object
+                clip = ImageClip(clip)
+                
                 clips.append(clip)
-                tot_dur += clip.duration
+                tot_dur += req_dur
 
         final_clip = concatenate_videoclips(clips)
         final_clip = final_clip.set_fps(30)
@@ -759,3 +735,4 @@ class YouTube:
                     videos = account["videos"]
 
         return videos
+

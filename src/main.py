@@ -19,7 +19,7 @@ from classes.AFM import AffiliateMarketing
 def main():
 
     # Get user input
-    # user_input = int(question("Select an option: "))
+    user_input = 1
     valid_input = False
     while not valid_input:
         try:
