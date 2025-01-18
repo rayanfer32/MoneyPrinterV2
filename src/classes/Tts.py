@@ -19,6 +19,6 @@ class TTS:
             str: The path to the output file.
         """
         # Synthesize the text
-        tts = self.gtts(text=text, lang='en', tld='com.ng')
+        tts = self.gtts(text=text, lang='en', tld='co.uk')
         tts.save(output_file)
         return output_file

@@ -11,4 +11,4 @@ srt_equalizer
 platformdirs 
 coqui-tts 
 tinydb 
-
+gTTS

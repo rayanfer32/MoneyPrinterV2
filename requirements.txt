@@ -16,3 +16,4 @@ undetected_chromedriver
 platformdirs
 coqui-tts
 tinydb
+gTTS
