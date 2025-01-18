@@ -22,5 +22,8 @@
   "outreach_message_body_file": "outreach_message.html",
   "assembly_ai_api_key": "",
   "font": "bold_font.ttf",
-  "imagemagick_path": "Path to magick.exe or on linux/macOS just /usr/bin/convert"
+  "imagemagick_path": "Path to magick.exe or on linux/macOS just /usr/bin/convert",
+  "bot_token": "YOUR_TELEGRAM_BOT_TOKEN",
+  "chat_id": "YOUR_CHAT_ID",
+  "use_venv": false
 }
